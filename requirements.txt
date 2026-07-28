@@ -1,0 +1,11 @@
+django>=5.1
+djangorestframework
+django-cors-headers
+psycopg2-binary
+django-smart-selects
+django-admin-rangefilter
+gunicorn
+djangorestframework-simplejwt
+whitenoise
+pypdf
+Pillow

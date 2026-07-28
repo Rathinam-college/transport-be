@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fleet Command Center | Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --mobile-bg: #0f172a;
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --accent-primary: #6366f1;
+        --accent-success: #10b981;
+        --text-bright: #f8fafc;
+    }
+
+    body {
+        background: var(--mobile-bg);
+        color: var(--text-bright);
+        font-family: 'Outfit', sans-serif;
+        margin: 0;
+        padding-bottom: 80px; /* Nav space */
+    }
+
+    .mobile-header {
+        padding: 2rem 1.5rem;
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
+    }
+
+    .kpi-scroll {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding: 0 1.5rem 1.5rem;
+        scrollbar-width: none;
+    }
+    .kpi-scroll::-webkit-scrollbar { display: none; }
+
+    .mobile-card {
+        min-width: 160px;
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        padding: 1.25rem;
+        border-radius: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 2rem 1.5rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .activity-feed {
+        padding: 0 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .activity-item {
+        background: var(--card-bg);
+        padding: 1rem;
+        border-radius: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    /* The Mobile Matrix Solution */
+    .mobile-matrix-container {
+        margin: 1rem 0;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+    }
+
+    .mobile-matrix {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+
+    .mobile-matrix th, .mobile-matrix td {
+        padding: 0.75rem;
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        font-size: 0.8rem;
+    }
+
+    .sticky-col {
+        position: sticky;
+        left: 0;
+        background: var(--mobile-bg);
+        z-index: 10;
+        font-weight: 800;
+        color: var(--accent-primary);
+        text-align: left !important;
+        padding-left: 1.5rem !important;
+        min-width: 100px;
+    }
+
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .nav-item {
+        color: rgba(255,255,255,0.4);
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.7rem;
+        gap: 0.25rem;
+    }
+    .nav-item.active { color: var(--accent-primary); }
+</style>
+</head>
+<body>
+    <div class="mobile-header">
+    <span style="font-size: 0.8rem; color: var(--accent-primary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">Fleet Dashboard</span>
+    <h1 style="margin: 0.5rem 0; font-size: 1.75rem;">Command Center</h1>
+</div>
+
+<div class="kpi-scroll">
+    <div class="mobile-card">
+        <span style="font-size: 0.6rem; opacity: 0.6; text-transform: uppercase;">Total Spend</span>
+        <div style="font-size: 1.4rem; font-weight: 800; margin: 0.25rem 0;">₹{{ grand_total|floatformat:0 }}</div>
+        <div style="color: var(--accent-success); font-size: 0.7rem; font-weight: 700;">↑ 4.2% MoM</div>
+    </div>
+    <div class="mobile-card">
+        <span style="font-size: 0.6rem; opacity: 0.6; text-transform: uppercase;">Fuel Consumed</span>
+        <div style="font-size: 1.4rem; font-weight: 800; margin: 0.25rem 0;">1,240L</div>
+        <div style="opacity: 0.5; font-size: 0.7rem;">Average Efficiency</div>
+    </div>
+    <div class="mobile-card">
+        <span style="font-size: 0.6rem; opacity: 0.6; text-transform: uppercase;">Maintenance</span>
+        <div style="font-size: 1.4rem; font-weight: 800; margin: 0.25rem 0;">₹42.5k</div>
+        <div style="color: #ef4444; font-size: 0.7rem; font-weight: 700;">3 Alerts Pending</div>
+    </div>
+</div>
+
+<div class="section-title">
+    Daily Spend Matrix
+    <span style="font-size: 0.7rem; font-weight: 400; opacity: 0.6;">Swipe Left →</span>
+</div>
+
+<div class="mobile-matrix-container">
+    <table class="mobile-matrix">
+        <thead>
+            <tr>
+                <th class="sticky-col">Vehicle</th>
+                {% for day in days|slice:":7" %}
+                    <th>{{ day|date:"d M" }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in matrix_list|slice:":10" %}
+                <tr>
+                    <td class="sticky-col">{{ row.vehicle.vehicle_number }}</td>
+                    {% for cell in row.cells|slice:":7" %}
+                        <td>
+                            {% if cell > 0 %}
+                                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-primary); margin: 0 auto;"></div>
+                            {% else %}
+                                <span style="opacity: 0.1">·</span>
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="section-title">
+    Recent Activity
+    <a href="#" style="font-size: 0.75rem; color: var(--accent-primary); text-decoration: none;">View All</a>
+</div>
+
+<div class="activity-feed">
+    {% for activity in financial_activity|slice:":5" %}
+        <div class="activity-item">
+            <div class="icon-box">
+                {% if activity.activity_type == 'Fuel' %}⛽{% else %}🛠️{% endif %}
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 0.9rem;">{{ activity.vehicle.vehicle_number }}</div>
+                <div style="font-size: 0.7rem; opacity: 0.5;">{{ activity.activity_type }} · {{ activity.date|date:"d M" }}</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-weight: 800; color: var(--text-bright);">₹{{ activity.display_amount|floatformat:0 }}</div>
+                <div style="font-size: 0.6rem; color: var(--accent-success);">Approved</div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="bottom-nav">
+    <a href="#" class="nav-item active">
+        <span>🏠</span>
+        Home
+    </a>
+    <a href="#" class="nav-item">
+        <span>🚚</span>
+        Fleet
+    </a>
+    <a href="#" class="nav-item">
+        <span>📊</span>
+        Stats
+    </a>
+    <a href="#" class="nav-item">
+        <span>⚙️</span>
+        Admin
+    </a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+    gsap.from(".mobile-card", {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.out"
+    });
+    gsap.from(".activity-item", {
+        x: -20,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+        delay: 0.5
+    });
+</script>
+</body>
+</html>

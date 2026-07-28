@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ institution.name }} Details | Rathinam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 3rem;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, var(--text-main), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .address {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-val {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            padding: 1rem;
+            border-bottom: 2px solid var(--bg);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--bg);
+            font-size: 0.95rem;
+        }
+
+        .vehicle-tag {
+            background: var(--bg);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        .budget-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--bg);
+        }
+
+        .budget-name {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .budget-val {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        @media (max-width: 900px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            .stat-val {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Overlay Styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(248, 250, 252, 0.95);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            overflow-y: auto;
+        }
+
+        .overlay-content {
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 2rem;
+        }
+
+        .overlay-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .filter-btns {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 2rem;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            height: 500px;
+        }
+
+        .vehicle-tag {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vehicle-tag:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Matrix Table Styles */
+        .matrix-container {
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.8rem;
+        }
+
+        .matrix-table th, .matrix-table td {
+            padding: 0.6rem;
+            border: 1px solid var(--bg);
+            text-align: center;
+            min-width: 50px;
+        }
+
+        .matrix-table th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        .matrix-table th:first-child, .matrix-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 10;
+            min-width: 140px;
+            text-align: left;
+            border-right: 2px solid var(--bg);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .matrix-table th, .matrix-table td {
+            padding: 0.85rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            border-right: 1px solid var(--border);
+        }
+
+        .matrix-table th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .matrix-table th, .matrix-table td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            border-right: 1px solid rgba(0,0,0,0.03);
+            min-width: 90px;
+            transition: background 0.2s;
+        }
+
+        .matrix-table td:nth-child(7n+1), 
+        .matrix-table th:nth-child(7n+1) {
+            border-right: 2px solid var(--border);
+        }
+
+        .matrix-table td:nth-child(even) {
+            background: rgba(248, 250, 252, 0.4);
+        }
+
+        .matrix-table th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            padding: 1rem 0.5rem;
+        }
+
+        .matrix-table th:first-child, .matrix-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: white !important;
+            z-index: 20;
+            min-width: 180px;
+            text-align: left;
+            border-right: 3px solid var(--primary);
+            box-shadow: 10px 0 15px rgba(0,0,0,0.05);
+            font-weight: 700;
+        }
+
+        .total-col {
+            background: linear-gradient(to right, #f1f5f9, #e2e8f0) !important;
+            font-weight: 800;
+            position: sticky;
+            right: 0;
+            z-index: 10;
+            border-left: 3px solid var(--primary) !important;
+            box-shadow: -10px 0 15px rgba(0,0,0,0.05);
+            min-width: 120px;
+            color: var(--primary);
+        }
+
+        .grand-total-row td {
+            background: #1e293b !important;
+            color: white !important;
+            font-weight: 700;
+            border-top: 2px solid var(--primary);
+        }
+
+        .active-cell {
+            color: var(--primary);
+            font-weight: 700;
+            position: relative;
+        }
+
+        .active-cell::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--primary);
+            opacity: 0.6;
+        }
+
+        .zero-cell {
+            color: #e2e8f0;
+            font-weight: 400;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        .dashboard-header {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 3rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .h-stat {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-right: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .h-stat:hover {
+            background: white;
+            transform: scale(1.02);
+            z-index: 5;
+        }
+
+        .h-stat:last-child { border-right: none; }
+
+        .h-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .h-val {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-main);
+            background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .filter-section {
+            padding: 1.5rem 3rem;
+            background: white;
+        }
+
+        .range-form {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 180px;
+        }
+
+        .form-select {
+            padding: 0.8rem 1.25rem;
+            border-radius: 1rem;
+            border: 2px solid var(--border);
+            font-family: inherit;
+            color: var(--text-main);
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        .form-select:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .filter-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            height: 48px;
+        }
+
+        .filter-submit:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Growth Indicators */
+        .growth-chip {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .growth-up { background: #fee2e2; color: #ef4444; }
+        .growth-down { background: #dcfce7; color: #22c55e; }
+
+        /* Insight Cards */
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .insight-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .insight-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .header-stats { grid-template-columns: 1fr; }
+            .h-stat { border-right: none; border-bottom: 1px solid var(--border); padding: 1.5rem; }
+            .range-form { flex-direction: column; align-items: stretch; gap: 1.5rem; }
+            .form-group { min-width: 100%; }
+            .filter-section { padding: 1.5rem; }
+            .matrix-table th, .matrix-table td { padding: 0.75rem; min-width: 80px; }
+            .matrix-table th:first-child, .matrix-table td:first-child { min-width: 130px; }
+            .insight-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+    <!-- Add Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+    <div class="container" id="main-container">
+        <header style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+                <div>
+                    <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+                    <h1 style="font-size: 2.25rem; margin: 0.5rem 0; letter-spacing: -0.02em;">{{ institution.name }}</h1>
+                    <p class="address" style="font-size: 1rem;">{{ institution.address|default:"Location not specified" }}</p>
+                </div>
+                <div style="background: white; padding: 1rem 2rem; border-radius: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; align-items: center; gap: 1.5rem; min-width: 320px;">
+                    <div style="flex: 1;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; display: block; letter-spacing: 0.1em; margin-bottom: 0.25rem;">30-Day Trend</span>
+                        <div style="height: 40px; width: 100%;">
+                            <canvas id="institutionSparkline"></canvas>
+                        </div>
+                    </div>
+                    <div style="height: 40px; width: 1px; background: var(--border);"></div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; display: block;">MoM Status</span>
+                        {% if mom_growth > 0 %}
+                            <span class="growth-chip growth-up">↑ {{ mom_growth|floatformat:1 }}%</span>
+                        {% else %}
+                            <span class="growth-chip growth-down">↓ {{ mom_growth|floatformat:1|cut:"-" }}%</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Improved Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="header-stats">
+                <div class="h-stat">
+                    <span class="h-label">Fleet Size</span>
+                    <span class="h-val">{{ vehicles.count }}</span>
+                </div>
+                <div class="h-stat">
+                    <span class="h-label">Fuel Consumption</span>
+                    <span class="h-val">₹{{ fuel.total_amount|default:0|floatformat:0 }}</span>
+                </div>
+                <div class="h-stat">
+                    <span class="h-label">Total Maintenance</span>
+                    <span class="h-val">₹{{ expenses.total_amount|default:0|floatformat:0 }}</span>
+                </div>
+            </div>
+            <div class="filter-section">
+                <form method="GET" class="range-form">
+                    <div class="form-group">
+                        <label>Select Month</label>
+                        <select name="month" class="form-select">
+                            {% for m_id, m_name in months_choices %}
+                                <option value="{{ m_id }}" {% if m_id == selected_month %}selected{% endif %}>{{ m_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Year</label>
+                        <select name="year" class="form-select">
+                            {% for y in years_choices %}
+                                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="filter-submit">Update Dashboard</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Strategic Insights Row -->
+        <div class="insight-grid">
+            <div class="insight-card">
+                <div class="insight-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">🏆</div>
+                <div>
+                    <span class="h-label">Top Spending Vehicle</span>
+                    {% if top_vehicle %}
+                        <strong style="display: block; font-size: 1.1rem; color: var(--text-main);">{{ top_vehicle.vehicle_number }}</strong>
+                    {% else %}
+                        <span style="color: var(--text-muted)">No data</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">📊</div>
+                <div style="flex: 1;">
+                    <span class="h-label">Budget Distribution</span>
+                    <div style="height: 60px; width: 100%;">
+                        <canvas id="budgetDoughnut"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">📅</div>
+                <div>
+                    <span class="h-label">Reporting Period</span>
+                    <strong style="display: block; font-size: 1.1rem; color: var(--text-main);">{{ range_display }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="main-content">
+                <section class="matrix-container" style="padding: 0; overflow: hidden; border-radius: 2rem;">
+                    <div style="padding: 2rem; border-bottom: 1px solid var(--border); background: white; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="font-size: 1.25rem; margin: 0; color: var(--text-main);">Daily Operational Spending</h2>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--text-muted);">Comprehensive day-wise tracking for the selected period.</p>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">
+                                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary);"></div>
+                                DATA PRESENT
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-scroll" style="overflow-x: auto;">
+                        <table class="matrix-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th>Vehicle Number</th>
+                                    {% for day in days %}
+                                        <th {% if day.day == 7 or day.day == 14 or day.day == 21 or day.day == 28 %}style="border-right: 2px solid var(--border);"{% endif %}>
+                                            {{ day|date:"d M" }}
+                                        </th>
+                                    {% endfor %}
+                                    <th class="total-col">Cumulative Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in matrix_list %}
+                                    <tr>
+                                        <td>
+                                            <div class="vehicle-tag" onclick="showVehicleDetail('{{ row.vehicle.id }}', '{{ row.vehicle.vehicle_number }}')" style="font-family: 'Outfit', sans-serif; font-weight: 800; color: var(--text-main); font-size: 0.9rem;">
+                                                {{ row.vehicle.vehicle_number }}
+                                            </div>
+                                        </td>
+                                        {% for cell in row.cells %}
+                                            <td class="{% if cell > 0 %}active-cell{% else %}zero-cell{% endif %}" {% if forloop.counter == 7 or forloop.counter == 14 or forloop.counter == 21 or forloop.counter == 28 %}style="border-right: 2px solid var(--border);"{% endif %}>
+                                                {% if cell > 0 %}
+                                                    ₹{{ cell|floatformat:0 }}
+                                                {% else %}
+                                                    <span style="opacity: 0.1">₹0</span>
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                        <td class="total-col">₹{{ row.total|floatformat:0 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="grand-total-row">
+                                    <td style="border-radius: 0 0 0 2rem;">Grand Daily Totals</td>
+                                    {% for day_total in col_totals_list %}
+                                        <td {% if forloop.counter == 7 or forloop.counter == 14 or forloop.counter == 21 or forloop.counter == 28 %}style="border-right: 2px solid rgba(255,255,255,0.1);"{% endif %}>
+                                            ₹{{ day_total|floatformat:0 }}
+                                        </td>
+                                    {% endfor %}
+                                    <td class="total-col" style="background: var(--primary) !important; color: white !important; border-radius: 0 0 2rem 0;">₹{{ grand_total|floatformat:0 }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div style="padding: 1.5rem; background: #f8fafc; border-top: 1px solid var(--border);">
+                        <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
+                            <strong>Data Intelligence:</strong> The matrix is segmented into weekly blocks for easier auditing. Horizontal and vertical grand totals are calculated in real-time based on your filters.
+                        </p>
+                    </div>
+                </section>
+                <div class="insight-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem;">
+                    <!-- Recent Movements -->
+                    <section class="matrix-container" style="padding: 1.5rem; background: white; border-radius: 1.5rem; border: 1px solid var(--border); margin: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                                <span style="font-size: 1.2rem;">🚚</span> Logistics Log
+                            </h2>
+                        </div>
+                        {% if recent_movements %}
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                {% for move in recent_movements %}
+                                    <div style="padding: 0.75rem 1rem; background: #f8fafc; border-radius: 1rem; border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; gap: 1rem;">
+                                        <div style="background: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                            {% if move.from_institution == institution %}📤{% else %}📥{% endif %}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <strong style="display: block; font-size: 0.85rem; color: var(--text-main);">{{ move.vehicle.vehicle_number }}</strong>
+                                            <span style="font-size: 0.7rem; color: var(--text-muted);">
+                                                {% if move.from_institution == institution %}To: {{ move.to_institution.name|truncatechars:15 }}{% else %}From: {{ move.from_institution.name|truncatechars:15 }}{% endif %}
+                                            </span>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <span style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">{{ move.moved_at|date:"d M" }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p style="text-align: center; color: var(--text-muted); padding: 1.5rem; font-size: 0.85rem;">No recent logistics data.</p>
+                        {% endif %}
+                    </section>
+
+                    <!-- Financial Activity Feed -->
+                    <section class="matrix-container" style="padding: 1.5rem; background: white; border-radius: 1.5rem; border: 1px solid var(--border); margin: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 style="font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                                <span style="font-size: 1.2rem;">💰</span> Expense Feed
+                            </h2>
+                        </div>
+                        {% if financial_activity %}
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                {% for activity in financial_activity %}
+                                    <div style="padding: 0.75rem 1rem; background: #f8fafc; border-radius: 1rem; border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; gap: 1rem;">
+                                        <div style="background: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 1rem;">
+                                            {% if activity.activity_type == 'Fuel' %}⛽{% else %}🛠️{% endif %}
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <strong style="display: block; font-size: 0.85rem; color: var(--text-main);">
+                                                {{ activity.vehicle.vehicle_number }}
+                                            </strong>
+                                            <span style="font-size: 0.75rem; color: var(--primary); font-weight: 700;">
+                                                ₹{{ activity.display_amount|floatformat:0 }}
+                                            </span>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <span style="display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">{{ activity.date|date:"d M" }}</span>
+                                            <span style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">{{ activity.activity_type }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p style="text-align: center; color: var(--text-muted); padding: 1.5rem; font-size: 0.85rem;">No recent financial activity.</p>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <section>
+                    <h2>Expense Breakdown</h2>
+                    {% if budget_breakdown %}
+                        {% for item in budget_breakdown %}
+                            <div class="budget-item">
+                                <div class="budget-name">{{ item.budget_head__name }}</div>
+                                <div class="budget-val">₹{{ item.total|floatformat:0 }}</div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: var(--text-muted)">No expenses recorded yet.</p>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Detail Overlay -->
+    <div id="vehicle-overlay" class="overlay">
+        <div class="overlay-content">
+            <div class="overlay-header">
+                <div style="display: flex; flex-direction: column;">
+                    <span id="overlay-subtitle" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Fuel Analytics</span>
+                    <h1 id="overlay-title" style="margin-bottom: 0;">Vehicle Details</h1>
+                </div>
+                <button class="close-btn" onclick="hideVehicleDetail()">×</button>
+            </div>
+            
+            <div class="filter-btns">
+                <button onclick="changePeriod('day')" class="filter-btn active" id="btn-day">Daily</button>
+                <button onclick="changePeriod('month')" class="filter-btn" id="btn-month">Monthly</button>
+                <button onclick="changePeriod('year')" class="filter-btn" id="btn-year">Yearly</button>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="fuelChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fuelChart = null;
+        let currentVehicleId = null;
+        let currentPeriod = 'day';
+
+        async function showVehicleDetail(vehicleId, vehicleNumber) {
+            currentVehicleId = vehicleId;
+            document.getElementById('overlay-title').innerText = vehicleNumber;
+            
+            // GSAP Animation: Main content moves away
+            gsap.to("#main-container", {
+                y: -50,
+                opacity: 0,
+                duration: 0.5,
+                ease: "power2.in",
+                onComplete: () => {
+                    document.getElementById('main-container').style.display = 'none';
+                    document.getElementById('vehicle-overlay').style.display = 'block';
+                    gsap.to("#vehicle-overlay", {
+                        opacity: 1,
+                        duration: 0.5,
+                        ease: "power2.out"
+                    });
+                    fetchData();
+                }
+            });
+        }
+
+        function hideVehicleDetail() {
+            gsap.to("#vehicle-overlay", {
+                opacity: 0,
+                duration: 0.5,
+                ease: "power2.in",
+                onComplete: () => {
+                    document.getElementById('vehicle-overlay').style.display = 'none';
+                    document.getElementById('main-container').style.display = 'block';
+                    gsap.to("#main-container", {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.5,
+                        ease: "power2.out"
+                    });
+                }
+            });
+        }
+
+        function changePeriod(period) {
+            currentPeriod = period;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${period}`).classList.add('active');
+            fetchData();
+        }
+
+        async function fetchData() {
+            const response = await fetch(`/transport_tracker/api/fuel-data/${currentVehicleId}/?period=${currentPeriod}`);
+            const data = await response.json();
+            renderChart(data);
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('fuelChart').getContext('2d');
+            
+            if (fuelChart) {
+                fuelChart.destroy();
+            }
+
+            fuelChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [
+                        {
+                            label: 'Liters Consumed',
+                            data: data.liters,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Amount Spent (₹)',
+                            data: data.amounts,
+                            type: 'bar',
+                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                            borderColor: '#6366f1',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Outfit',
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#1e293b',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.label.includes('Amount')) {
+                                        label += '₹' + context.parsed.y.toLocaleString();
+                                    } else {
+                                        label += context.parsed.y.toLocaleString() + ' L';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Liters'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Amount (₹)'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+        // Initialize Analytics Charts
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Institution Sparkline
+            const ctxSpark = document.getElementById('institutionSparkline').getContext('2d');
+            const sparkData = [{% for t in col_totals_list %}{{ t|floatformat:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+            
+            new Chart(ctxSpark, {
+                type: 'line',
+                data: {
+                    labels: [{% for d in days %}"{{ d|date:'d' }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+                    datasets: [{
+                        data: sparkData,
+                        borderColor: '#6366f1',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(99, 102, 241, 0.05)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+
+            // 2. Budget Distribution Doughnut
+            const ctxDoughnut = document.getElementById('budgetDoughnut').getContext('2d');
+            const distData = [
+                {% for item in budget_dist %}
+                    { label: "{{ item.budget_head__name }}", value: {{ item.total|floatformat:0 }} }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            if (distData.length > 0) {
+                new Chart(ctxDoughnut, {
+                    type: 'doughnut',
+                    data: {
+                        labels: distData.map(d => d.label),
+                        datasets: [{
+                            data: distData.map(d => d.value),
+                            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: { label: (ctx) => ` ₹${ctx.raw}` }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
