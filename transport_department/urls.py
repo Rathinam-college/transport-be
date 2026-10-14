@@ -25,8 +25,10 @@ router.register(r'service-requests', api_views.ServiceRequestViewSet)
 router.register(r'vehicle-operational-history', api_views.VehicleOperationalHistoryViewSet)
 router.register(r'renewals', api_views.VehicleRenewalViewSet)
 router.register(r'vehicle-odometer-log', api_views.VehicleOdometerLogViewSet)
-router.register(r'transport-summary', api_views.TransportSummaryViewSet)
+router.register(r'transport-summary', api_views.TransportSummaryViewSet, basename='transport-summary')
 router.register(r'transport-remarks', api_views.TransportRemarkViewSet)
+router.register(r'students', api_views.StudentViewSet)
+
 
 urlpatterns = [
     path('', views.index, name='index'),

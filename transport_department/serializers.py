@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (Institution, RegisteredInstitution, Vehicle, VehicleRenewal, VehicleMovement, FuelData, 
-                     FuelRate, BudgetHead, SubBudgetHead, Vendor, ExpenseRecord, OpexDetail, ServiceRequest, VehicleOperationalHistory, VehicleOdometerLog, TransportSummary, TransportRemark)
+                     FuelRate, BudgetHead, SubBudgetHead, Vendor, ExpenseRecord, OpexDetail, ServiceRequest, VehicleOperationalHistory, VehicleOdometerLog, TransportRemark, Student)
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -165,12 +166,19 @@ class ServiceRequestSerializer(serializers.ModelSerializer):
     def get_is_closed(self, obj):
         return obj.expense_records.exists()
 
-class TransportSummarySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TransportSummary
-        fields = '__all__'
-
 class TransportRemarkSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransportRemark
         fields = '__all__'
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    institution_name = serializers.CharField(source='institution.name', read_only=True)
+    allocated_vehicle_number = serializers.CharField(source='allocated_vehicle.vehicle_number', read_only=True)
+    allocated_cab_number = serializers.CharField(source='allocated_vehicle.cab_number', read_only=True)
+    fee_due = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Student
+        fields = '__all__'
+
