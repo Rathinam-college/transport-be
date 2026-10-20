@@ -18,3 +18,8 @@ env/
 .DS_Store
 .vscode/
 .idea/
+
+# Media & Static
+media/
+staticfiles/
+

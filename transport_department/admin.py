@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
-from .models import Institution, RegisteredInstitution, Vehicle, VehicleRenewal, VehicleMovement, FuelData, BudgetHead, SubBudgetHead, Vendor, ExpenseRecord, OpexDetail, ServiceRequest
+from .models import (Institution, RegisteredInstitution, Vehicle, VehicleRenewal, VehicleMovement, FuelData, 
+                     BudgetHead, SubBudgetHead, Vendor, ExpenseRecord, OpexDetail, ServiceRequest, Student)
+
 from rangefilter.filters import DateRangeFilter
 from django import forms
 
@@ -257,3 +259,40 @@ class ExpenseRecordAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ('roll_number', 'student_name', 'rider_type', 'institution', 'academic_year', 'year_of_study', 'allocated_vehicle', 'fee_demand', 'fee_paid', 'status', 'surrender_date', 'surrender_reason')
+    list_filter = ('rider_type', 'institution', 'academic_year', 'year_of_study', 'status', 'allocated_vehicle', 'surrender_date')
+    search_fields = ('roll_number', 'student_name', 'course', 'pickup_point', 'contact_number', 'surrender_reason')
+    readonly_fields = ('created_by', 'updated_by', 'created_at', 'updated_at')
+
+    fieldsets = (
+        ('Passenger Identity', {
+            'fields': ('rider_type', 'roll_number', 'student_name', 'institution', 'academic_year', 'course', 'year_of_study')
+        }),
+        ('Transport & Route Allocation', {
+            'fields': ('allocated_vehicle', 'route_name', 'pickup_point', 'drop_point')
+        }),
+        ('Fee Management', {
+            'fields': ('fee_demand', 'fee_discount', 'fee_paid')
+        }),
+        ('Pass Surrender & Status Details', {
+            'fields': ('status', 'surrender_date', 'surrender_reason', 'refund_amount', 'remarks')
+        }),
+        ('Contact Information', {
+            'fields': ('contact_number', 'parent_contact')
+        }),
+        ('Audit Log', {
+            'fields': ('created_by', 'updated_by', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.created_by = request.user
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+

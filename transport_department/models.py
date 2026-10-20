@@ -1,7 +1,42 @@
+import os
 from django.db import models
 from django.conf import settings
 from smart_selects.db_fields import ChainedForeignKey
 from django.utils import timezone
+
+def service_estimate_upload_path(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    if not ext:
+        ext = '.pdf'
+    if instance.request_id:
+        new_filename = f"{instance.request_id}_estimate{ext}"
+    else:
+        new_filename = filename
+    return os.path.join('service_estimates', new_filename)
+
+def expense_bill_upload_path(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    if not ext:
+        ext = '.pdf'
+    
+    sr_id = None
+    if getattr(instance, 'service_request', None) and instance.service_request.request_id:
+        sr_id = instance.service_request.request_id
+    elif getattr(instance, 'service_request_id', None):
+        try:
+            from .models import ServiceRequest
+            sr = ServiceRequest.objects.get(id=instance.service_request_id)
+            if sr.request_id:
+                sr_id = sr.request_id
+        except Exception:
+            pass
+
+    if sr_id:
+        new_filename = f"{sr_id}{ext}"
+    else:
+        new_filename = filename
+
+    return os.path.join('bills', new_filename)
 # Create your models here.
 class Institution(models.Model):
     name = models.CharField(max_length=255)    
@@ -279,7 +314,7 @@ class ServiceRequest(models.Model):
     days_required = models.PositiveIntegerField(blank=True, null=True)
     expected_delivery_date = models.DateField(blank=True, null=True)
     remarks = models.TextField(blank=True, null=True)
-    estimate_doc = models.FileField(upload_to='service_estimates/', blank=True, null=True, verbose_name="Estimate Document / PDF")
+    estimate_doc = models.FileField(upload_to=service_estimate_upload_path, blank=True, null=True, verbose_name="Estimate Document / PDF")
     
     # User Logging Fields
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='service_requests_created')
@@ -298,6 +333,15 @@ class ServiceRequest(models.Model):
             else:
                 new_number = 1
             self.request_id = f'{prefix}{new_number:04d}'
+
+        if self.request_id and self.estimate_doc:
+            ext = os.path.splitext(self.estimate_doc.name)[1].lower()
+            if not ext:
+                ext = '.pdf'
+            desired_name = f"service_estimates/{self.request_id}_estimate{ext}"
+            if self.estimate_doc.name != desired_name:
+                self.estimate_doc.name = desired_name
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -349,7 +393,7 @@ class ExpenseRecord(models.Model):
     sgst = models.DecimalField(max_digits=15, decimal_places=2, default=0, verbose_name="SGST")
     cgst = models.DecimalField(max_digits=15, decimal_places=2, default=0, verbose_name="CGST")
     total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    bill_file = models.FileField(upload_to='bills/', blank=True, null=True, verbose_name="Bill PDF/File")
+    bill_file = models.FileField(upload_to=expense_bill_upload_path, blank=True, null=True, verbose_name="Bill PDF/File")
     remarks = models.TextField(blank=True, null=True)
     
     # User Logging Fields
@@ -369,6 +413,16 @@ class ExpenseRecord(models.Model):
         # Auto-calculate total amount if not provided
         if not self.total_amount or self.total_amount == 0:
             self.total_amount = self.amount + self.sgst + self.cgst
+
+        # If service_request is selected, rename uploaded bill_file to match Service Request request_id
+        if self.service_request and self.service_request.request_id and self.bill_file:
+            ext = os.path.splitext(self.bill_file.name)[1].lower()
+            if not ext:
+                ext = '.pdf'
+            desired_basename = f"{self.service_request.request_id}{ext}"
+            desired_name = f"bills/{desired_basename}"
+            if self.bill_file.name != desired_name:
+                self.bill_file.name = desired_name
         
         # Compress bill_file if exceeds 1MB
         if self.bill_file and hasattr(self.bill_file, 'file'):
@@ -427,89 +481,17 @@ class VehicleOdometerLog(models.Model):
         return f"{self.vehicle.vehicle_number} - {self.log_date}"
 
 
-class TransportSummary(models.Model):
+class TransportRemark(models.Model):
     BRANCH_CHOICES = (
         ('RPS', 'RPS'),
         ('KPM', 'KPM'),
-        ('College', 'College'),
+        ('University', 'University'),
+        ('College', 'University'),
         ('Common', 'Common'),
     )
 
-    branch = models.CharField(max_length=20, choices=BRANCH_CHOICES)
-    month = models.DateField(help_text="First day of the month, e.g., 2025-09-01")
-    
-    # Fleet & Ridership
-    vehicles = models.PositiveIntegerField(default=0)
-    riders = models.PositiveIntegerField(default=0)
-
-    # Distance Tracking
-    km_approved = models.PositiveIntegerField(default=0)
-    km_actual = models.PositiveIntegerField(default=0)
-    km_additional = models.PositiveIntegerField(default=0)
-
-    # Compliance & Safety
-    statutory_compliance = models.PositiveIntegerField(default=0)
-    incidents = models.PositiveIntegerField(default=0)
-
-    # Service Desk
-    tickets_raised = models.PositiveIntegerField(default=0)
-    tickets_closed = models.PositiveIntegerField(default=0)
-    tickets_open = models.PositiveIntegerField(default=0)
-
-    # Quality Desk
-    quality_received = models.PositiveIntegerField(default=0)
-    quality_closed = models.PositiveIntegerField(default=0)
-    quality_open = models.PositiveIntegerField(default=0)
-
-    # Fuel Metrics
-    diesel_litres = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    fuel_expense = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-
-    # Expense Breakdown
-    exp_fc = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    exp_vehicle_statutory = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    exp_repair = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    exp_others = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    exp_employee_cost = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    exp_cctv = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    exp_parking_fastag = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    exp_total = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-
-    # Budget Metrics
-    budget_approved = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    budget_spent_cumulative = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    budget_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-
-    # Fee Collection
-    fee_demand = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    fee_discount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    fee_paid = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    fee_unpaid = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-
-    # Unit Economics & Feedback
-    cost_per_student = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    fee_per_student_year = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    feedback_score = models.DecimalField(max_digits=5, decimal_places=2, default=1.00)
-    cab_request_billing = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-
-    # Reference Tracker File Name
-    source_ref = models.CharField(max_length=255, blank=True, null=True, default="odometer_tracker_2025-26.xlsx")
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "Transport Summaries"
-        unique_together = ('branch', 'month')
-        ordering = ['-month', 'branch']
-
-    def __str__(self):
-        return f"{self.branch} - {self.month.strftime('%Y-%m')}"
-
-
-class TransportRemark(models.Model):
     log_date = models.DateField()
-    branch = models.CharField(max_length=20, blank=True, null=True, choices=TransportSummary.BRANCH_CHOICES)
+    branch = models.CharField(max_length=20, blank=True, null=True, choices=BRANCH_CHOICES)
     title = models.CharField(max_length=255, default="Operational Activity")
     note = models.TextField()
     category = models.CharField(max_length=50, default="Incident", choices=(
@@ -528,3 +510,98 @@ class TransportRemark(models.Model):
 
     def __str__(self):
         return f"{self.log_date} ({self.branch or 'General'}): {self.title}"
+
+
+class Student(models.Model):
+    RIDER_TYPE_CHOICES = (
+        ('Student', 'Student'),
+        ('Staff', 'Staff / Faculty'),
+    )
+
+    YEAR_CHOICES = (
+        ('1st Year', '1st Year'),
+        ('2nd Year', '2nd Year'),
+        ('3rd Year', '3rd Year'),
+        ('4th Year', '4th Year'),
+        ('PG / Masters', 'PG / Masters'),
+        ('Schooling', 'Schooling'),
+        ('Faculty / Staff', 'Faculty / Staff'),
+    )
+
+    STATUS_CHOICES = (
+        ('Active', 'Active'),
+        ('Pass Surrendered', 'Pass Surrendered'),
+        ('Suspended', 'Suspended'),
+        ('Graduated', 'Graduated'),
+        ('Pending Allocation', 'Pending Allocation'),
+        ('Inactive', 'Inactive'),
+    )
+
+    rider_type = models.CharField(max_length=20, default="Student", choices=RIDER_TYPE_CHOICES, help_text="Passenger Type: Student or Staff / Faculty")
+    roll_number = models.CharField(max_length=50, unique=True, help_text="Roll / Register / Staff ID / Admission Number")
+    student_name = models.CharField(max_length=255, help_text="Student or Staff Full Name")
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, related_name='students')
+    academic_year = models.CharField(max_length=20, default="2025-2026", help_text="e.g., 2025-2026, 2026-2027")
+    course = models.CharField(max_length=150, blank=True, null=True, help_text="e.g., B.Tech CSE, MBA, Department of AI, Transport Admin")
+    year_of_study = models.CharField(max_length=50, default="1st Year", choices=YEAR_CHOICES)
+    
+    # Transport Route & Vehicle Allocation
+    allocated_vehicle = models.ForeignKey(
+        Vehicle, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='allocated_students',
+        help_text="Assigned Bus or Cab"
+    )
+    route_name = models.CharField(max_length=150, blank=True, null=True, help_text="e.g. Route 12 - Gandhipuram Express")
+    pickup_point = models.CharField(max_length=200, blank=True, null=True, help_text="Boarding stop")
+    drop_point = models.CharField(max_length=200, blank=True, null=True, help_text="Return drop stop")
+    
+    # Fee Management
+    fee_demand = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Annual Transport Fee")
+    fee_discount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Concession / Discount")
+    fee_paid = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Amount Paid")
+    
+    # Pass Surrender & Discontinuation Tracking
+    surrender_date = models.DateField(blank=True, null=True, help_text="Date when bus pass was surrendered / cancelled")
+    surrender_reason = models.CharField(max_length=255, blank=True, null=True, help_text="Reason for surrendering/leaving bus pass")
+    refund_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Refund amount issued if pass surrendered")
+    remarks = models.TextField(blank=True, null=True, help_text="Additional surrender remarks or audit notes")
+    
+    # Contact Details
+    contact_number = models.CharField(max_length=25, blank=True, null=True)
+    parent_contact = models.CharField(max_length=25, blank=True, null=True)
+    status = models.CharField(max_length=30, default="Active", choices=STATUS_CHOICES)
+    
+    # Audit Logging
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students_created'
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students_updated'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def fee_due(self):
+        net_demand = max(0, float(self.fee_demand or 0) - float(self.fee_discount or 0))
+        return max(0, net_demand - float(self.fee_paid or 0))
+
+    class Meta:
+        ordering = ['institution', 'student_name']
+        verbose_name = "Student Transport Record"
+        verbose_name_plural = "Student Transport Records"
+
+    def __str__(self):
+        return f"{self.roll_number} - {self.student_name} ({self.institution.name if self.institution else 'No Inst'})"
+
